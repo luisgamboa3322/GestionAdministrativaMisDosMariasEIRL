@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: mis-dos-marias-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerContext: services/api
+    dockerfilePath: services/api/Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: TIMEZONE
+        value: America/Lima
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: SESSION_TTL_HOURS
+        value: "24"
+      - key: S3_USE_SSL
+        value: "true"
+      - key: S3_AUTO_CREATE_BUCKET
+        value: "false"
+      - key: S3_REGION
+        value: auto
+      - key: SESSION_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: S3_ENDPOINT_URL
+        sync: false
+      - key: S3_ACCESS_KEY
+        sync: false
+      - key: S3_SECRET_KEY
+        sync: false
+      - key: S3_BUCKET_NAME
+        sync: false
+      - key: FRONTEND_ORIGINS
+        sync: false
+      - key: INITIAL_ORG_NAME
+        value: MIS DOS MARÍAS E.I.R.L.
+      - key: INITIAL_MANAGER_NAME
+        value: Gerente General
+      - key: INITIAL_MANAGER_EMAIL
+        sync: false
+      - key: INITIAL_MANAGER_PASSWORD
+        sync: false
