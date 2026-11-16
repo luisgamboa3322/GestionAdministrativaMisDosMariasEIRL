@@ -1,0 +1,12 @@
+{
+  "title": "Mis Dos Marías Docs",
+  "language": "es",
+  "description": "Centralize company documents, vehicle and worker records, and expiration tracking while preparing audit files with ease, from desktop or mobile.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": true,
+    "ignoreReducedMotion": false
+  }
+}
