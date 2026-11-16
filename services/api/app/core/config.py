@@ -4,7 +4,8 @@ from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ROOT_ENV = Path(__file__).resolve().parents[4] / ".env"
+_parents = Path(__file__).resolve().parents
+ROOT_ENV = (_parents[4] / ".env") if len(_parents) > 4 else Path(".env")
 
 
 class Settings(BaseSettings):

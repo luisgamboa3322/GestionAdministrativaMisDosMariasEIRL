@@ -21,7 +21,7 @@ services:
       - key: S3_AUTO_CREATE_BUCKET
         value: "false"
       - key: S3_REGION
-        value: auto
+        value: us-east-1
       - key: SESSION_SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
