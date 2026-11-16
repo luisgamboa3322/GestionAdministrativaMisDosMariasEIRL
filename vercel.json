@@ -3,11 +3,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://REEMPLAZA-TU-BACKEND.onrender.com/api/:path*"
+      "destination": "https://mis-dos-marias-api.onrender.com/api/:path*"
     },
     {
       "source": "/health",
-      "destination": "https://REEMPLAZA-TU-BACKEND.onrender.com/health"
+      "destination": "https://mis-dos-marias-api.onrender.com/health"
     },
     {
       "source": "/((?!api/|health|assets/|manifest\\.webmanifest|sw\\.js|favicon\\.png).*)",
