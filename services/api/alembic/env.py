@@ -14,7 +14,8 @@ if config.config_file_name is not None:
 
 settings = get_settings()
 if not config.get_main_option("sqlalchemy.url"):
-    config.set_main_option("sqlalchemy.url", settings.database_url)
+    # Escape '%' so configparser does not fail on percent-encoded passwords.
+    config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
 
 target_metadata = Base.metadata
 
