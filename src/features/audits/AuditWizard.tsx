@@ -47,6 +47,7 @@ export function AuditWizard({
   onCancel,
   onSave,
   onPreview,
+  isLive = false,
 }: {
   initial?: AuditRecord | null;
   files: DemoFile[];
@@ -59,6 +60,7 @@ export function AuditWizard({
   onCancel: () => void;
   onSave: (audit: AuditRecord, preparePackage: boolean) => void;
   onPreview: (evidence: AuditEvidence) => void;
+  isLive?: boolean;
 }) {
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
@@ -157,11 +159,17 @@ export function AuditWizard({
       <PageHeader
         eyebrow={initial ? "Editar auditoría" : "Nueva auditoría"}
         title={auditStepLabels[step - 1]}
-        description={`Paso ${step} de 6 · La información se conserva únicamente durante esta sesión.`}
+        description={
+          isLive
+            ? `Paso ${step} de 6 · La auditoría se guardará en tu repositorio.`
+            : `Paso ${step} de 6 · La información se conserva únicamente durante esta sesión.`
+        }
         actions={
-          <span className="demo-pill">
-            <Sparkles size={14} /> Prototipo local
-          </span>
+          !isLive ? (
+            <span className="demo-pill">
+              <Sparkles size={14} /> Prototipo local
+            </span>
+          ) : undefined
         }
       />
       <div className="audit-wizard-layout">
@@ -188,7 +196,11 @@ export function AuditWizard({
             <ShieldCheck size={16} />
             <p>
               <strong>Verificación real</strong>
-              <span>Solo se consideran registros presentes en el prototipo.</span>
+              <span>
+                {isLive
+                  ? "Solo se consideran documentos registrados en el sistema."
+                  : "Solo se consideran registros presentes en el prototipo."}
+              </span>
             </p>
           </div>
         </aside>
@@ -516,7 +528,11 @@ export function AuditWizard({
                     <span>05</span>
                     <div>
                       <h2>Verificación documental</h2>
-                      <p>Resultados encontrados en el estado compartido del prototipo.</p>
+                      <p>
+                        {isLive
+                          ? "Resultados encontrados en tu repositorio privado."
+                          : "Resultados encontrados en el estado compartido del prototipo."}
+                      </p>
                     </div>
                   </div>
                   <AuditVerificationSummary metrics={metrics} />

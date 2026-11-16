@@ -42,6 +42,7 @@ export function AuditChecklistPage({
   onUpdate,
   onPreview,
   onOpenExplorer,
+  isLive = false,
 }: {
   audit: AuditRecord;
   files: DemoFile[];
@@ -56,6 +57,7 @@ export function AuditChecklistPage({
   onUpdate: (audit: AuditRecord) => void;
   onPreview: (evidence: AuditEvidence) => void;
   onOpenExplorer: () => void;
+  isLive?: boolean;
 }) {
   const [filter, setFilter] = useState("Todos");
   const evidence = evaluateAudit(audit, files, vehicles, workers, companies, manifests, invoices);
@@ -186,7 +188,9 @@ export function AuditChecklistPage({
                               ? `Vence ${new Date(`${item.expirationDate}T12:00:00`).toLocaleDateString("es-PE")}`
                               : item.name
                                 ? `${item.source} · Sin fecha de vencimiento`
-                                : "No existe una coincidencia en el prototipo"}
+                                : isLive
+                                  ? "No existe una coincidencia registrada"
+                                  : "No existe una coincidencia en el prototipo"}
                           </small>
                         </span>
                       </span>

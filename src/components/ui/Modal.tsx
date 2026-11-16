@@ -89,11 +89,13 @@ export function Modal({
 export function ConfirmationDialog({
   title,
   text,
+  isLive = false,
   onClose,
   onConfirm,
 }: {
   title: string;
   text: string;
+  isLive?: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }) {
@@ -104,8 +106,9 @@ export function ConfirmationDialog({
           <AlertCircle size={24} />
         </span>
         <p>
-          Esta acción afecta únicamente datos ficticios de la sesión y no puede deshacerse dentro
-          del prototipo.
+          {isLive
+            ? "Esta acción eliminará el archivo de forma permanente y no se puede deshacer."
+            : "Esta acción afecta únicamente datos ficticios de la sesión y no puede deshacerse dentro del prototipo."}
         </p>
         <div className="modal-actions">
           <Button variant="secondary" onClick={onClose}>

@@ -22,11 +22,13 @@ export function VehiclesPage({
   files,
   onRegister,
   onOpen,
+  isLive = false,
 }: {
   vehicles: Vehicle[];
   files: DemoFile[];
   onRegister: () => void;
   onOpen: (vehicle: Vehicle) => void;
+  isLive?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("Todas");
@@ -141,7 +143,7 @@ export function VehiclesPage({
                   >
                     {vehicle.status}
                   </span>
-                  <small>Foto de demostración</small>
+                  {!isLive && <small>Foto de demostración</small>}
                 </button>
                 <div className="vehicle-card-body">
                   <div className="vehicle-card-title">

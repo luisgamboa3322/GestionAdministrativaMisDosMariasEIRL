@@ -33,6 +33,7 @@ export function FileExplorer({
   onEditFile,
   view,
   setView,
+  isLive = false,
 }: {
   folders: DemoFolder[];
   files: DemoFile[];
@@ -48,6 +49,7 @@ export function FileExplorer({
   onEditFile?: (file: DemoFile) => void;
   view: "grid" | "list";
   setView: (v: "grid" | "list") => void;
+  isLive?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState<"recent" | "name" | "type">("recent");
@@ -81,7 +83,11 @@ export function FileExplorer({
     <motion.div className="page" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <PageHeader
         title={current?.name || "Mis archivos"}
-        description="Organiza carpetas y documentos en tu espacio de demostración."
+        description={
+          isLive
+            ? "Organiza carpetas y documentos en tu repositorio privado."
+            : "Organiza carpetas y documentos en tu espacio de demostración."
+        }
         actions={
           <>
             <Button variant="secondary" icon={FolderPlus} onClick={onNewFolder}>

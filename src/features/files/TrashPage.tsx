@@ -9,10 +9,12 @@ export function TrashPage({
   entries,
   onRestore,
   onRequestDelete,
+  isLive = false,
 }: {
   entries: TrashEntry[];
   onRestore: (id: number) => void;
   onRequestDelete: (entry: TrashEntry) => void;
+  isLive?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const filtered = entries.filter((entry) =>
@@ -23,20 +25,26 @@ export function TrashPage({
       <PageHeader
         eyebrow="Recuperación"
         title="Papelera"
-        description="Restaura elementos eliminados durante la sesión. No se eliminan datos reales."
+        description={
+          isLive
+            ? "Restaura elementos eliminados o elimínalos permanentemente del almacenamiento."
+            : "Restaura elementos eliminados durante la sesión. No se eliminan datos reales."
+        }
         actions={
           <span className="demo-pill">
             <Trash2 size={14} /> {entries.length} elementos
           </span>
         }
       />
-      <div className="trash-notice">
-        <ShieldCheck size={17} />
-        <div>
-          <strong>Papelera demostrativa</strong>
-          <p>La eliminación permanente solo afecta datos ficticios de esta sesión.</p>
+      {!isLive && (
+        <div className="trash-notice">
+          <ShieldCheck size={17} />
+          <div>
+            <strong>Papelera demostrativa</strong>
+            <p>La eliminación permanente solo afecta datos ficticios de esta sesión.</p>
+          </div>
         </div>
-      </div>
+      )}
       <div className="directory-toolbar">
         <label className="inline-search">
           <Search size={17} />

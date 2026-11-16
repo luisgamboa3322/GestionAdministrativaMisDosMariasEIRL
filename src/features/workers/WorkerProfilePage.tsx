@@ -24,6 +24,7 @@ export function WorkerProfilePage({
   onPreview,
   onUpload,
   onNewCategory,
+  isLive = false,
 }: {
   worker: Worker;
   files: DemoFile[];
@@ -32,6 +33,7 @@ export function WorkerProfilePage({
   onPreview: (file: DemoFile) => void;
   onUpload: () => void;
   onNewCategory: () => void;
+  isLive?: boolean;
 }) {
   const [tab, setTab] = useState("Resumen");
   const documents = files.filter((file) => file.worker === worker.name);
@@ -78,7 +80,7 @@ export function WorkerProfilePage({
             <div className="card-head">
               <div>
                 <h2>Información básica</h2>
-                <p>Datos profesionales de demostración</p>
+                <p>{isLive ? "Datos registrados en el sistema" : "Datos profesionales de demostración"}</p>
               </div>
             </div>
             <dl>

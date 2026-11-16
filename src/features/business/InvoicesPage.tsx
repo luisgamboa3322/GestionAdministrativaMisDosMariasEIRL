@@ -18,9 +18,11 @@ import { PageHeader } from "@/components/layout/AppLayout";
 export function InvoicesPage({
   invoices,
   onAdd,
+  isLive = false,
 }: {
   invoices: InvoiceRecord[];
   onAdd: () => void;
+  isLive?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("Todos");
@@ -49,13 +51,13 @@ export function InvoicesPage({
         <StatCard
           label="Facturas registradas"
           value={String(invoices.length)}
-          note="Datos de demostración"
+          note={isLive ? "En repositorio privado" : "Datos de demostración"}
           icon={ReceiptText}
         />
         <StatCard
           label="Importe en soles"
           value={`S/ ${totalPen.toLocaleString("es-PE")}`}
-          note="Resumen demostrativo"
+          note={isLive ? "Acumulado en soles" : "Resumen demostrativo"}
           icon={CreditCard}
           tone="blue"
         />
@@ -122,7 +124,7 @@ export function InvoicesPage({
         {selected && (
           <Modal
             title={`Factura ${selected.number}`}
-            subtitle="Detalle documental de demostración."
+            subtitle={isLive ? "Detalle del comprobante registrado." : "Detalle documental de demostración."}
             onClose={() => setSelected(null)}
           >
             <div className="invoice-detail">

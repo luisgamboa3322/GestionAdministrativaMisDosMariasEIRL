@@ -81,6 +81,7 @@ import {
 } from "@/data/demo";
 import { ConfirmationDialog } from "@/components/ui/Modal";
 import { PlaceholderPage } from "@/components/ui/Common";
+import { daysUntil } from "@/utils/dates";
 import { Sidebar, Topbar, MobileNav } from "@/components/layout/AppLayout";
 import { Login } from "@/features/auth/Login";
 import { Dashboard } from "@/features/dashboard/Dashboard";
@@ -970,6 +971,11 @@ function App() {
     "trash",
     "settings",
   ];
+  const isLive = authMode === "live";
+  const expirationsCount = files.filter((file) => {
+    const days = daysUntil(file.expirationDate, isLive ? new Date() : undefined);
+    return days !== null && days <= 30;
+  }).length;
   const selectedVehicle = vehicles.find((vehicle) => vehicle.id === selectedVehicleId) || null;
   const selectedWorker = workers.find((worker) => worker.id === selectedWorkerId) || null;
   const selectedAudit = audits.find((audit) => audit.id === selectedAuditId) || null;
@@ -979,8 +985,9 @@ function App() {
         route={route}
         collapsed={collapsed}
         mobileOpen={mobileOpen}
-        isLive={authMode === "live"}
+        isLive={isLive}
         inboxCount={inbox.length}
+        expirationsCount={isLive ? expirationsCount : undefined}
         onRoute={goTo}
         onCollapse={() => setCollapsed(!collapsed)}
         onClose={() => setMobileOpen(false)}
@@ -993,8 +1000,9 @@ function App() {
           route={route}
           userName={session?.user.full_name || "José Mendoza"}
           userRoleLabel={
-            authMode === "live" ? session?.organization.legal_name || "Gerente general" : "Gerente general (Demo)"
+            isLive ? session?.organization.legal_name || "Gerente general" : "Gerente general (Demo)"
           }
+          alertCount={isLive ? expirationsCount : 1}
           onMenu={() => setMobileOpen(true)}
           onUpload={openGeneralUpload}
           onSearch={() => setModal("search")}
@@ -1008,6 +1016,8 @@ function App() {
               vehicles={vehicles}
               auditCount={audits.filter((audit) => audit.status !== "Completada").length}
               inboxCount={inbox.length}
+              isLive={isLive}
+              userName={session?.user.full_name || "José Mendoza"}
               goTo={goTo}
               onUpload={openGeneralUpload}
               onNewFolder={() => {
@@ -1041,6 +1051,7 @@ function App() {
               onEditFile={(file) => setRenameMoveTarget({ kind: "file", item: file })}
               view={view}
               setView={setView}
+              isLive={isLive}
             />
           )}
           {route === "inbox" && (
@@ -1053,6 +1064,7 @@ function App() {
                   prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
                 )
               }
+              isLive={isLive}
             />
           )}
           {route === "workers" && !selectedWorker && (
@@ -1061,6 +1073,7 @@ function App() {
               files={files}
               onOpen={(worker) => setSelectedWorkerId(worker.id)}
               onAdd={() => setModal("worker")}
+              isLive={isLive}
             />
           )}
           {route === "workers" && selectedWorker && (
@@ -1079,6 +1092,7 @@ function App() {
                 setFolderContext({ parent: selectedWorker.folderId, stayInDossier: true });
                 setModal("folder");
               }}
+              isLive={isLive}
             />
           )}
           {route === "suppliers" && (
@@ -1125,16 +1139,17 @@ function App() {
               vehicles={vehicles}
               companies={companies}
               onAdd={() => setModal("manifest")}
+              isLive={isLive}
             />
           )}
           {route === "invoices" && (
-            <InvoicesPage invoices={invoices} onAdd={() => setModal("invoice")} />
+            <InvoicesPage invoices={invoices} onAdd={() => setModal("invoice")} isLive={isLive} />
           )}
           {route === "expirations" && (
             <ExpirationsPage
               files={files}
               onPreview={setPreview}
-              isLive={authMode === "live"}
+              isLive={isLive}
             />
           )}
           {route === "favorites" && (
@@ -1145,12 +1160,17 @@ function App() {
               entries={trash}
               onRestore={restoreTrashEntry}
               onRequestDelete={setDeleteConfirmation}
+              isLive={isLive}
             />
           )}
           {route === "settings" && (
             <SettingsPage
               categories={categories}
               templates={templates}
+              isLive={isLive}
+              userName={session?.user.full_name || "José Mendoza"}
+              userEmail={session?.user.email || "gerencia@misdosmarias.pe"}
+              organizationName={session?.organization.legal_name || "MIS DOS MARÍAS E.I.R.L."}
               onAddCategory={(category) => {
                 if (authMode === "live") {
                   createCategoryApi({
@@ -1269,6 +1289,7 @@ function App() {
               manifests={manifests}
               invoices={invoices}
               templates={templates}
+              isLive={isLive}
               onCancel={() => setAuditScreen("center")}
               onSave={saveAudit}
               onPreview={previewAuditEvidence}
@@ -1283,6 +1304,7 @@ function App() {
               companies={companies}
               manifests={manifests}
               invoices={invoices}
+              isLive={isLive}
               onBack={() => setAuditScreen("center")}
               onModify={() => setAuditScreen("wizard")}
               onPackage={() => setAuditScreen("package")}
@@ -1303,7 +1325,7 @@ function App() {
               companies={companies}
               manifests={manifests}
               invoices={invoices}
-              isLive={authMode === "live"}
+              isLive={isLive}
               onBack={() => setAuditScreen("center")}
               onChecklist={() => setAuditScreen("checklist")}
               onUpdate={(next) => void updateAudit(next)}
@@ -1317,6 +1339,7 @@ function App() {
               files={files}
               onRegister={openRegisterVehicle}
               onOpen={openVehicle}
+              isLive={isLive}
             />
           )}
           {route === "vehicles" && vehicleScreen === "register" && (
@@ -1325,7 +1348,7 @@ function App() {
               onCreate={createVehicle}
               existingPlates={vehicles.map((vehicle) => vehicle.plate)}
               templates={templates}
-              isLive={authMode === "live"}
+              isLive={isLive}
             />
           )}
           {route === "vehicles" && vehicleScreen === "profile" && selectedVehicle && (
@@ -1344,6 +1367,7 @@ function App() {
               onAddPhotos={(selected) => addVehiclePhotos(selectedVehicle.id, selected)}
               onSetCoverPhoto={(photoId) => setVehicleCoverPhoto(selectedVehicle.id, photoId)}
               onDeletePhoto={(photoId) => deleteVehiclePhoto(selectedVehicle.id, photoId)}
+              isLive={isLive}
             />
           )}
           {route === "vehicles" && vehicleScreen === "dossier" && selectedVehicle && (
@@ -1427,6 +1451,7 @@ function App() {
             audits={audits}
             manifests={manifests}
             invoices={invoices}
+            isLive={isLive}
             onClose={() => setModal(null)}
             onOpenFile={(f) => {
               setModal(null);
@@ -1550,10 +1575,11 @@ function App() {
           <ConfirmationDialog
             title={`Eliminar “${deleteConfirmation.name}”`}
             text={
-              authMode === "live"
+              isLive
                 ? "Se eliminará permanentemente del servidor y almacenamiento privado."
                 : "Se eliminará permanentemente de la papelera demostrativa."
             }
+            isLive={isLive}
             onClose={() => setDeleteConfirmation(null)}
             onConfirm={() => {
               if (authMode === "live") {

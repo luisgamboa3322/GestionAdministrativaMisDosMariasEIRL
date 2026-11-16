@@ -784,6 +784,7 @@ export function SearchModal({
   onOpenFile,
   onOpenFolder,
   onNavigate,
+  isLive = false,
 }: {
   files: DemoFile[];
   folders: DemoFolder[];
@@ -798,6 +799,7 @@ export function SearchModal({
   onOpenFile: (f: DemoFile) => void;
   onOpenFolder: (id: number) => void;
   onNavigate: (route: Route, id?: number) => void;
+  isLive?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const matches = files
@@ -916,7 +918,9 @@ export function SearchModal({
           </div>
           <p>
             <Search size={17} />
-            Escribe para buscar en todos los datos de demostración.
+            {isLive
+              ? "Escribe para buscar en todos los registros del sistema."
+              : "Escribe para buscar en todos los datos de demostración."}
           </p>
         </div>
       ) : (

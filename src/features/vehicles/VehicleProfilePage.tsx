@@ -31,6 +31,7 @@ export function VehicleProfilePage({
   onAddPhotos,
   onSetCoverPhoto,
   onDeletePhoto,
+  isLive = false,
 }: {
   vehicle: Vehicle;
   files: DemoFile[];
@@ -43,6 +44,7 @@ export function VehicleProfilePage({
   onAddPhotos?: (selected: FileList) => Promise<void>;
   onSetCoverPhoto?: (photoId: number) => Promise<void>;
   onDeletePhoto?: (photoId: number) => Promise<void>;
+  isLive?: boolean;
 }) {
   const [tab, setTab] = useState("Resumen");
   const photoInput = useRef<HTMLInputElement>(null);
@@ -115,7 +117,7 @@ export function VehicleProfilePage({
             <div className="card-head">
               <div>
                 <h2>Información de la unidad</h2>
-                <p>Datos registrados en el prototipo</p>
+                <p>{isLive ? "Datos registrados en el sistema" : "Datos registrados en el prototipo"}</p>
               </div>
               <button onClick={onEdit}>
                 Editar <Edit3 size={14} />
@@ -339,7 +341,11 @@ export function VehicleProfilePage({
           <div className="card-head">
             <div>
               <h2>Vencimientos documentales</h2>
-              <p>Estados calculados con fechas ficticias</p>
+              <p>
+                {isLive
+                  ? "Estados calculados al día de hoy"
+                  : "Estados calculados con fechas ficticias"}
+              </p>
             </div>
           </div>
           {documents.filter((file) => file.status === "Vencido" || file.status === "Por vencer")
@@ -375,7 +381,9 @@ export function VehicleProfilePage({
                 <Bus size={14} />
               </i>
               <p>
-                <strong>Unidad registrada en el prototipo</strong>
+                <strong>
+                  {isLive ? "Unidad registrada en el sistema" : "Unidad registrada en el prototipo"}
+                </strong>
                 <span>Sesión actual · {vehicle.code}</span>
               </p>
             </div>

@@ -91,6 +91,10 @@ export function SettingsSave() {
 export function SettingsPage({
   categories,
   templates,
+  isLive = false,
+  userName = "José Mendoza",
+  userEmail = "gerencia@misdosmarias.pe",
+  organizationName = "MIS DOS MARÍAS E.I.R.L.",
   onAddCategory,
   onDeleteCategory,
   onAddTemplate,
@@ -99,12 +103,24 @@ export function SettingsPage({
 }: {
   categories: CategorySetting[];
   templates: TemplateSetting[];
+  isLive?: boolean;
+  userName?: string;
+  userEmail?: string;
+  organizationName?: string;
   onAddCategory: (category: Omit<CategorySetting, "id">) => void;
   onDeleteCategory: (id: number) => void;
   onAddTemplate: (template: Omit<TemplateSetting, "id">) => void;
   onToggleTemplate: (id: number) => void;
   onDeleteTemplate: (id: number) => void;
 }) {
+  const initials =
+    userName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "GG";
   const [section, setSection] = useState("Perfil");
   const [categoryForm, setCategoryForm] = useState(false);
   const [templateForm, setTemplateForm] = useState(false);
@@ -154,13 +170,19 @@ export function SettingsPage({
   return (
     <motion.div className="page" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <PageHeader
-        eyebrow="Administración del prototipo"
+        eyebrow={isLive ? "Administración" : "Administración del prototipo"}
         title="Configuración"
-        description="Personaliza categorías, plantillas y preferencias de la sesión."
+        description={
+          isLive
+            ? "Personaliza categorías, plantillas y preferencias de tu organización."
+            : "Personaliza categorías, plantillas y preferencias de la sesión."
+        }
         actions={
-          <span className="demo-pill">
-            <Sparkles size={14} /> Sin persistencia real
-          </span>
+          !isLive ? (
+            <span className="demo-pill">
+              <Sparkles size={14} /> Sin persistencia real
+            </span>
+          ) : undefined
         }
       />
       <div className="settings-layout">
@@ -181,12 +203,16 @@ export function SettingsPage({
           {section === "Perfil" && (
             <SettingsCard
               title="Perfil del gerente"
-              description="Información mostrada dentro del prototipo."
+              description={
+                isLive
+                  ? "Información de la cuenta conectada."
+                  : "Información mostrada dentro del prototipo."
+              }
             >
               <div className="profile-settings-head">
-                <span className="avatar avatar-xl">JM</span>
+                <span className="avatar avatar-xl">{initials}</span>
                 <div>
-                  <strong>José Mendoza</strong>
+                  <strong>{isLive ? userName : "José Mendoza"}</strong>
                   <small>Gerente general</small>
                 </div>
                 <Button variant="secondary" disabled title="Carga de avatar pendiente">
@@ -196,7 +222,7 @@ export function SettingsPage({
               <div className="settings-form-grid">
                 <label>
                   Nombre completo
-                  <input defaultValue="José Mendoza" />
+                  <input defaultValue={isLive ? userName : "José Mendoza"} />
                 </label>
                 <label>
                   Cargo
@@ -204,7 +230,7 @@ export function SettingsPage({
                 </label>
                 <label>
                   Correo
-                  <input defaultValue="gerencia@misdosmarias.pe" />
+                  <input defaultValue={isLive ? userEmail : "gerencia@misdosmarias.pe"} />
                 </label>
                 <label>
                   Teléfono
@@ -217,20 +243,24 @@ export function SettingsPage({
           {section === "Empresa" && (
             <SettingsCard
               title="Datos de la empresa"
-              description="Datos ficticios visibles en documentos y cabeceras."
+              description={
+                isLive
+                  ? "Datos de la organización visibles en documentos y cabeceras."
+                  : "Datos ficticios visibles en documentos y cabeceras."
+              }
             >
               <div className="settings-form-grid">
                 <label>
                   Razón social
-                  <input defaultValue="MIS DOS MARÍAS E.I.R.L." />
+                  <input defaultValue={organizationName} />
                 </label>
                 <label>
                   Nombre comercial
                   <input defaultValue="Mis Dos Marías" />
                 </label>
                 <label>
-                  RUC de demostración
-                  <input defaultValue="20XXXXXXXXX" />
+                  {isLive ? "RUC" : "RUC de demostración"}
+                  <input defaultValue={isLive ? "" : "20XXXXXXXXX"} placeholder="20..." />
                 </label>
                 <label>
                   Actividad
@@ -238,7 +268,7 @@ export function SettingsPage({
                 </label>
                 <label className="field-full">
                   Dirección
-                  <input defaultValue="Lima, Perú — dato demostrativo" />
+                  <input defaultValue={isLive ? "Lima, Perú" : "Lima, Perú — dato demostrativo"} />
                 </label>
               </div>
               <SettingsSave />
@@ -476,7 +506,11 @@ export function SettingsPage({
           {section === "Notificaciones" && (
             <SettingsCard
               title="Preferencias de notificaciones"
-              description="No se envían mensajes reales desde este prototipo."
+              description={
+                isLive
+                  ? "Configuración visual de alertas dentro del sistema."
+                  : "No se envían mensajes reales desde este prototipo."
+              }
             >
               <SettingsToggle
                 title="Vencimientos documentales"
@@ -488,21 +522,29 @@ export function SettingsPage({
                 text="Mostrar avisos en el centro de alertas."
                 enabled
               />
-              <SettingsToggle title="Resumen semanal" text="Funcionalidad pendiente de backend." />
+              <SettingsToggle title="Resumen semanal" text="Funcionalidad pendiente de configuración." />
             </SettingsCard>
           )}
           {section === "Seguridad" && (
             <SettingsCard
               title="Seguridad"
-              description="Representación visual de futuras opciones."
+              description={
+                isLive
+                  ? "Estado de la sesión autenticada."
+                  : "Representación visual de futuras opciones."
+              }
             >
               <div className="security-row">
                 <ShieldCheck size={21} />
                 <div>
-                  <strong>Acceso de demostración</strong>
-                  <p>No existe autenticación real ni se almacenan credenciales.</p>
+                  <strong>{isLive ? "Sesión autenticada" : "Acceso de demostración"}</strong>
+                  <p>
+                    {isLive
+                      ? "Sesión protegida mediante cookie HttpOnly y verificación de origen."
+                      : "No existe autenticación real ni se almacenan credenciales."}
+                  </p>
                 </div>
-                <Badge status="Prototipo" />
+                <Badge status={isLive ? "Vigente" : "Prototipo"} />
               </div>
               <SettingsToggle
                 title="Bloqueo automático"
@@ -519,17 +561,29 @@ export function SettingsPage({
           {section === "Almacenamiento" && (
             <SettingsCard
               title="Almacenamiento"
-              description="Uso simulado durante la sesión actual."
+              description={
+                isLive
+                  ? "Repositorio privado conectado en la nube."
+                  : "Uso simulado durante la sesión actual."
+              }
             >
               <div className="storage-settings">
                 <HardDrive size={24} />
                 <div>
-                  <strong>Espacio de demostración</strong>
-                  <p>No se cargan documentos a servidores externos.</p>
-                  <div>
-                    <i />
-                  </div>
-                  <small>38% representativo · no corresponde a almacenamiento real</small>
+                  <strong>{isLive ? "Almacenamiento privado S3" : "Espacio de demostración"}</strong>
+                  <p>
+                    {isLive
+                      ? "Los documentos y fotografías se guardan de forma privada en tu bucket S3 y PostgreSQL."
+                      : "No se cargan documentos a servidores externos."}
+                  </p>
+                  {!isLive && (
+                    <>
+                      <div>
+                        <i />
+                      </div>
+                      <small>38% representativo · no corresponde a almacenamiento real</small>
+                    </>
+                  )}
                 </div>
               </div>
             </SettingsCard>
@@ -537,7 +591,11 @@ export function SettingsPage({
           {section === "Sistema" && (
             <SettingsCard
               title="Información del sistema"
-              description="Detalles de esta versión del prototipo."
+              description={
+                isLive
+                  ? "Detalles de tu despliegue productivo."
+                  : "Detalles de esta versión del prototipo."
+              }
             >
               <div className="system-info">
                 <div>
@@ -545,22 +603,24 @@ export function SettingsPage({
                   <strong>Mis Dos Marías Docs</strong>
                 </div>
                 <div>
-                  <span>Versión UI</span>
-                  <strong>Prototipo Fase F</strong>
+                  <span>Entorno</span>
+                  <strong>{isLive ? "Producción" : "Prototipo Fase F"}</strong>
                 </div>
                 <div>
                   <span>Persistencia</span>
-                  <strong>Estado local de sesión</strong>
+                  <strong>{isLive ? "PostgreSQL + S3 privado" : "Estado local de sesión"}</strong>
                 </div>
                 <div>
                   <span>Integraciones</span>
-                  <strong>No conectadas</strong>
+                  <strong>{isLive ? "API conectada" : "No conectadas"}</strong>
                 </div>
               </div>
-              <div className="prototype-note">
-                <CircleHelp size={15} />
-                <span>La implementación productiva se conectará posteriormente.</span>
-              </div>
+              {!isLive && (
+                <div className="prototype-note">
+                  <CircleHelp size={15} />
+                  <span>La implementación productiva se conectará posteriormente.</span>
+                </div>
+              )}
             </SettingsCard>
           )}
         </section>

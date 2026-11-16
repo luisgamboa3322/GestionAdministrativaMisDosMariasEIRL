@@ -28,6 +28,7 @@ export function Sidebar({
   mobileOpen,
   isLive = false,
   inboxCount,
+  expirationsCount,
   onRoute,
   onCollapse,
   onClose,
@@ -38,6 +39,7 @@ export function Sidebar({
   mobileOpen: boolean;
   isLive?: boolean;
   inboxCount?: number;
+  expirationsCount?: number;
   onRoute: (r: Route) => void;
   onCollapse: () => void;
   onClose: () => void;
@@ -89,7 +91,9 @@ export function Sidebar({
                   <span>{item.label}</span>
                   {item.id === "inbox" && typeof inboxCount === "number"
                     ? inboxCount > 0 && <b>{inboxCount}</b>
-                    : item.badge && <b>{item.badge}</b>}
+                    : item.id === "expirations" && typeof expirationsCount === "number"
+                      ? expirationsCount > 0 && <b>{expirationsCount}</b>
+                      : !isLive && item.badge && <b>{item.badge}</b>}
                 </button>
               </div>
             );
@@ -136,6 +140,7 @@ export function Topbar({
   route,
   userName = "José Mendoza",
   userRoleLabel = "Gerente general",
+  alertCount = 1,
   onMenu,
   onUpload,
   onSearch,
@@ -145,6 +150,7 @@ export function Topbar({
   route: Route;
   userName?: string;
   userRoleLabel?: string;
+  alertCount?: number;
   onMenu: () => void;
   onUpload: () => void;
   onSearch: () => void;
@@ -186,7 +192,7 @@ export function Topbar({
           onClick={onNotifications}
         >
           <Bell size={19} />
-          <i />
+          {alertCount > 0 && <i />}
         </button>
         <button
           className="profile-button"

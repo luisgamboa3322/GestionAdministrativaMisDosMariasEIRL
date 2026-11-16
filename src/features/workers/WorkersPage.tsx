@@ -20,11 +20,13 @@ export function WorkersPage({
   files,
   onOpen,
   onAdd,
+  isLive = false,
 }: {
   workers: Worker[];
   files: DemoFile[];
   onOpen: (worker: Worker) => void;
   onAdd: () => void;
+  isLive?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("Todos");
@@ -49,7 +51,7 @@ export function WorkersPage({
         <StatCard
           label="Trabajadores"
           value={String(workers.length)}
-          note="Datos ficticios"
+          note={isLive ? "En repositorio privado" : "Datos ficticios"}
           icon={Users}
         />
         <StatCard

@@ -20,11 +20,13 @@ export function ManifestsPage({
   vehicles,
   companies,
   onAdd,
+  isLive = false,
 }: {
   manifests: ManifestRecord[];
   vehicles: Vehicle[];
   companies: BusinessRecord[];
   onAdd: () => void;
+  isLive?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [vehicle, setVehicle] = useState("Todas");
@@ -47,15 +49,17 @@ export function ManifestsPage({
           </Button>
         }
       />
-      <div className="manifest-warning">
-        <ShieldCheck size={17} />
-        <p>
-          <strong>Privacidad del prototipo</strong>
-          <span>
-            Los manifiestos son ejemplos y no contienen nombres ni información real de pasajeros.
-          </span>
-        </p>
-      </div>
+      {!isLive && (
+        <div className="manifest-warning">
+          <ShieldCheck size={17} />
+          <p>
+            <strong>Privacidad del prototipo</strong>
+            <span>
+              Los manifiestos son ejemplos y no contienen nombres ni información real de pasajeros.
+            </span>
+          </p>
+        </div>
+      )}
       <DirectoryToolbar
         query={query}
         setQuery={setQuery}

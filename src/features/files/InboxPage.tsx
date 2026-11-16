@@ -10,11 +10,13 @@ export function InboxPage({
   onSelect,
   selectedIds,
   toggleSelect,
+  isLive = false,
 }: {
   items: InboxItem[];
   onSelect: (f: InboxItem) => void;
   selectedIds: number[];
   toggleSelect: (id: number) => void;
+  isLive?: boolean;
 }) {
   const [showInfo, setShowInfo] = useState(true);
   return (
@@ -29,7 +31,7 @@ export function InboxPage({
           </span>
         }
       />
-      {showInfo && (
+      {!isLive && showInfo && (
         <div className="inbox-info">
           <span>
             <Sparkles size={17} />
