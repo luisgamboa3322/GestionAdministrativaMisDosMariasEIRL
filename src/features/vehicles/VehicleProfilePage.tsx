@@ -252,9 +252,14 @@ export function VehicleProfilePage({
               <h2>Documentos de {vehicle.plate}</h2>
               <p>Archivos asociados a esta unidad</p>
             </div>
-            <Button icon={Upload} onClick={onUploadDocument}>
-              Agregar
-            </Button>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <Button variant="secondary" icon={Folder} onClick={onDossier}>
+                Ver carpetas
+              </Button>
+              <Button icon={Upload} onClick={onUploadDocument}>
+                Agregar
+              </Button>
+            </div>
           </div>
           {documents.length ? (
             documents.map((file) => (

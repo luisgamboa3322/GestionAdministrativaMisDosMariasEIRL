@@ -841,6 +841,17 @@ export async function createTemplateApi(payload: {
   });
 }
 
+export async function updateTemplateApi(
+  templateId: number,
+  payload: { name?: string; items?: string[] },
+): Promise<TemplateSetting> {
+  return apiRequest<TemplateSetting>(`/api/v1/settings/templates/${templateId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function toggleTemplateApi(templateId: number): Promise<TemplateSetting> {
   return apiRequest<TemplateSetting>(`/api/v1/settings/templates/${templateId}/toggle`, {
     method: "PATCH",

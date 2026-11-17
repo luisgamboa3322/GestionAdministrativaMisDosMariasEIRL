@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -17,6 +17,7 @@ from app.schemas.settings import (
     CategoryOut,
     TemplateCreate,
     TemplateOut,
+    TemplateUpdate,
 )
 
 router = APIRouter(prefix="/settings", tags=["settings"])
@@ -87,7 +88,7 @@ def create_category(
     exists = db.scalar(
         select(DocumentType).where(
             DocumentType.organization_id == current_user.organization_id,
-            DocumentType.name == clean_name,
+            func.lower(DocumentType.name) == clean_name.lower(),
         )
     )
     if exists is not None:
@@ -187,6 +188,66 @@ def create_template(
             organization_id=current_user.organization_id,
             actor_user_id=current_user.id,
             action="template.create",
+            entity_type="document_template",
+            entity_id=tpl.id,
+        )
+    )
+    db.commit()
+    db.refresh(tpl)
+    return _serialize_template(db, tpl)
+
+
+@router.patch("/templates/{template_id}", response_model=TemplateOut)
+def update_template(
+    template_id: int,
+    payload: TemplateUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> TemplateOut:
+    """Update a template name and/or ordered requirement items."""
+    tpl = db.scalar(
+        select(DocumentTemplate).where(
+            DocumentTemplate.id == template_id,
+            DocumentTemplate.organization_id == current_user.organization_id,
+        )
+    )
+    if tpl is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Plantilla no encontrada."
+        )
+
+    if payload.name is not None:
+        tpl.name = payload.name.strip()
+
+    if payload.items is not None:
+        existing_reqs = list(
+            db.scalars(
+                select(TemplateRequirement).where(TemplateRequirement.template_id == tpl.id)
+            )
+        )
+        for req in existing_reqs:
+            db.delete(req)
+        db.flush()
+
+        seen: set[str] = set()
+        for raw_item in payload.items:
+            label = raw_item.strip()
+            if not label or label.lower() in seen:
+                continue
+            seen.add(label.lower())
+            db.add(
+                TemplateRequirement(
+                    template_id=tpl.id,
+                    label=label[:120],
+                    is_required=True,
+                )
+            )
+
+    db.add(
+        AuditLog(
+            organization_id=current_user.organization_id,
+            actor_user_id=current_user.id,
+            action="template.update",
             entity_type="document_template",
             entity_id=tpl.id,
         )

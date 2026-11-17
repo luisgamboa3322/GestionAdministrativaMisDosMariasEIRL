@@ -11,7 +11,7 @@ from fastapi import (
     UploadFile,
     status,
 )
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_storage
@@ -89,7 +89,7 @@ def _ensure_unidades_root(db: Session, organization_id: int) -> Folder:
         select(Folder).where(
             Folder.organization_id == organization_id,
             Folder.parent_id.is_(None),
-            Folder.name == "Unidades",
+            func.lower(Folder.name) == "unidades",
             Folder.deleted_at.is_(None),
         )
     )

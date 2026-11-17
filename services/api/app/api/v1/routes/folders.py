@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -84,7 +84,7 @@ def create_folder(
         select(Folder).where(
             Folder.organization_id == current_user.organization_id,
             Folder.parent_id == payload.parent_id,
-            Folder.name == clean_name,
+            func.lower(Folder.name) == clean_name.lower(),
             Folder.deleted_at.is_(None),
         )
     )

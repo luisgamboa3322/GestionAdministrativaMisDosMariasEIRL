@@ -4942,14 +4942,76 @@ kbd {
   background: var(--surface-2);
   font-size: 7px;
 }
+.template-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 13px;
+}
+.template-edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--emerald);
+  font-size: 7px;
+  font-weight: 700;
+}
 .template-delete {
   display: flex;
   align-items: center;
   gap: 5px;
-  margin-top: 13px;
   color: var(--danger);
   font-size: 7px;
   font-weight: 700;
+}
+.template-edit-box {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+.template-edit-box textarea {
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+}
+.category-chip-block {
+  display: grid;
+  gap: 6px;
+}
+.chip-block-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.category-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.category-chip {
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+.category-chip:hover,
+.category-chip.active {
+  border-color: var(--emerald);
+  background: var(--soft-green);
+  color: var(--emerald);
+}
+.field-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--muted);
 }
 .settings-switch {
   width: 34px;

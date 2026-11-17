@@ -33,6 +33,13 @@ class TemplateCreate(BaseModel):
     items: list[str] = Field(min_length=1)
 
 
+class TemplateUpdate(BaseModel):
+    """Payload to update an existing template's name or checklist items."""
+
+    name: str | None = Field(default=None, min_length=2, max_length=140)
+    items: list[str] | None = Field(default=None, min_length=1)
+
+
 class TemplateOut(BaseModel):
     """Serialized template configuration."""
 

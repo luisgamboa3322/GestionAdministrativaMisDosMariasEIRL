@@ -42,6 +42,7 @@ import type {
 import { Modal } from "@/components/ui/Modal";
 import { Button, Badge, FileIcon, EmptyState } from "@/components/ui/Common";
 import { documentDownloadUrl } from "@/lib/api";
+import { getFolderOptions } from "@/utils/folders";
 
 export function VersionsModal({
   file,
@@ -149,32 +150,91 @@ export function VersionsModal({
 
 export function NewFolderModal({
   folders,
+  categories = [],
   parent,
+  defaultSyncCategory = false,
   onClose,
   onCreate,
+  onCreateCategory,
 }: {
   folders: DemoFolder[];
+  categories?: CategorySetting[];
   parent: number | null;
+  defaultSyncCategory?: boolean;
   onClose: () => void;
-  onCreate: (name: string, parent: number | null, color: string) => void;
+  onCreate: (name: string, parent: number | null, color: string) => void | Promise<void>;
+  onCreateCategory?: (name: string) => void | Promise<void>;
 }) {
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState<number | null>(parent);
   const [color, setColor] = useState("emerald");
+  const [syncCategory, setSyncCategory] = useState(defaultSyncCategory);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  function submit(e: FormEvent) {
+
+  const folderOptions = getFolderOptions(folders);
+  const siblingNames = new Set(
+    folders
+      .filter((f) => f.parent === parentId)
+      .map((f) => f.name.trim().toLowerCase()),
+  );
+  const availableCategories = categories.filter(
+    (c) => !siblingNames.has(c.name.trim().toLowerCase()),
+  );
+  const cleanName = name.trim();
+  const matchesExistingCategory = categories.some(
+    (c) => c.name.trim().toLowerCase() === cleanName.toLowerCase(),
+  );
+
+  async function submit(e: FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return setError("Ingresa un nombre para la carpeta.");
-    if (name.trim().length < 2) return setError("Utiliza al menos 2 caracteres.");
-    onCreate(name.trim(), parentId, color);
+    if (!cleanName) return setError("Ingresa un nombre para la carpeta.");
+    if (cleanName.length < 2) return setError("Utiliza al menos 2 caracteres.");
+    if (siblingNames.has(cleanName.toLowerCase())) {
+      return setError(`Ya existe una carpeta llamada “${cleanName}” en esta ubicación.`);
+    }
+    setSubmitting(true);
+    try {
+      if (syncCategory && !matchesExistingCategory && onCreateCategory) {
+        await onCreateCategory(cleanName);
+      }
+      await onCreate(cleanName, parentId, color);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo crear la carpeta.");
+      setSubmitting(false);
+    }
   }
   return (
     <Modal
       title="Nueva carpeta"
-      subtitle="Crea un espacio para organizar tus documentos."
+      subtitle="Elige una categoría existente o crea una nueva carpeta sin duplicados."
       onClose={onClose}
     >
-      <form onSubmit={submit} className="modal-form">
+      <form onSubmit={(e) => void submit(e)} className="modal-form">
+        {availableCategories.length > 0 && (
+          <div className="category-chip-block">
+            <span className="chip-block-label">Categorías creadas disponibles (1 clic):</span>
+            <div className="category-chip-row">
+              {availableCategories.map((cat) => {
+                const selected = cleanName.toLowerCase() === cat.name.trim().toLowerCase();
+                return (
+                  <button
+                    type="button"
+                    key={cat.id}
+                    className={`category-chip ${selected ? "active" : ""}`}
+                    onClick={() => {
+                      setName(cat.name);
+                      setColor(cat.color || "emerald");
+                      setError("");
+                    }}
+                  >
+                    {cat.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <label>
           Nombre de la carpeta
           <input
@@ -184,7 +244,7 @@ export function NewFolderModal({
               setName(e.target.value);
               setError("");
             }}
-            placeholder="Ej. Documentos legales"
+            placeholder="Ej. TARJETA UNICA DE CIRCULACION"
             className={error ? "invalid" : ""}
           />
           {error && (
@@ -193,17 +253,35 @@ export function NewFolderModal({
               {error}
             </small>
           )}
+          {!error && cleanName.length >= 2 && matchesExistingCategory && (
+            <small className="field-hint">
+              Ya existe como categoría documental; solo se creará esta carpeta en la ubicación elegida.
+            </small>
+          )}
         </label>
+        {onCreateCategory && cleanName.length >= 2 && !matchesExistingCategory && (
+          <label className="check-label">
+            <input
+              type="checkbox"
+              checked={syncCategory}
+              onChange={(e) => setSyncCategory(e.target.checked)}
+            />
+            Registrar también “{cleanName}” en Configuración → Categorías
+          </label>
+        )}
         <label>
           Carpeta padre
           <select
             value={parentId ?? ""}
-            onChange={(e) => setParentId(e.target.value ? Number(e.target.value) : null)}
+            onChange={(e) => {
+              setParentId(e.target.value ? Number(e.target.value) : null);
+              setError("");
+            }}
           >
             <option value="">Mis archivos</option>
-            {folders.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
+            {folderOptions.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.label}
               </option>
             ))}
           </select>
@@ -234,8 +312,8 @@ export function NewFolderModal({
           <Button type="button" variant="secondary" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit" icon={FolderPlus}>
-            Crear carpeta
+          <Button type="submit" icon={FolderPlus} disabled={submitting}>
+            {submitting ? "Creando..." : "Crear carpeta"}
           </Button>
         </div>
       </form>
@@ -287,6 +365,7 @@ export function UploadModal({
     rawFile?: globalThis.File;
   } | null>(null);
   const [folder, setFolder] = useState<number | null>(defaultFolder ?? null);
+  const [manualFolder, setManualFolder] = useState(false);
   const [vehicle, setVehicle] = useState(defaultVehicle || "");
   const [worker, setWorker] = useState(defaultWorker || "");
   const [category, setCategory] = useState(categories[0]?.name || "Documento general");
@@ -294,6 +373,18 @@ export function UploadModal({
   const [sendToInbox, setSendToInbox] = useState(false);
   const [detailError, setDetailError] = useState("");
   const [step, setStep] = useState<"pick" | "details" | "processing">("pick");
+  const folderOptions = getFolderOptions(folders);
+
+  function resolveFolderForVehicle(plate: string, catName: string): number | null {
+    const matchedVehicle = vehicles.find((item) => item.plate === plate);
+    if (!matchedVehicle) return null;
+    const catChild = folders.find(
+      (f) =>
+        f.parent === matchedVehicle.folderId &&
+        f.name.trim().toLowerCase() === catName.trim().toLowerCase(),
+    );
+    return catChild ? catChild.id : matchedVehicle.folderId;
+  }
   function selectFile(file?: globalThis.File) {
     const name = file?.name || "SOAT_T3X-456_2025.pdf";
     const ext = name.split(".").pop()?.toLowerCase();
@@ -443,19 +534,32 @@ export function UploadModal({
               Carpeta destino
               <select
                 value={folder ?? ""}
-                onChange={(e) => setFolder(e.target.value ? Number(e.target.value) : null)}
+                onChange={(e) => {
+                  setFolder(e.target.value ? Number(e.target.value) : null);
+                  setManualFolder(true);
+                }}
               >
                 <option value="">Mis archivos</option>
-                {folders.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.name}
+                {folderOptions.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.label}
                   </option>
                 ))}
               </select>
             </label>
             <label>
               Unidad relacionada
-              <select value={vehicle} onChange={(e) => setVehicle(e.target.value)}>
+              <select
+                value={vehicle}
+                onChange={(e) => {
+                  const nextPlate = e.target.value;
+                  setVehicle(nextPlate);
+                  if (!manualFolder && nextPlate) {
+                    const suggested = resolveFolderForVehicle(nextPlate, category);
+                    if (suggested !== null) setFolder(suggested);
+                  }
+                }}
+              >
                 <option value="">Sin asociar</option>
                 {vehicles.map((item) => (
                   <option key={item.id}>{item.plate}</option>
@@ -476,8 +580,13 @@ export function UploadModal({
               <select
                 value={category}
                 onChange={(event) => {
-                  setCategory(event.target.value);
+                  const nextCat = event.target.value;
+                  setCategory(nextCat);
                   setDetailError("");
+                  if (!manualFolder && vehicle) {
+                    const suggested = resolveFolderForVehicle(vehicle, nextCat);
+                    if (suggested !== null) setFolder(suggested);
+                  }
                 }}
               >
                 {categories.map((item) => (
@@ -614,9 +723,9 @@ export function OrganizeDrawer({
               onChange={(e) => setParent(e.target.value ? Number(e.target.value) : null)}
             >
               <option value="">Mis archivos</option>
-              {folders.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.name}
+              {getFolderOptions(folders).map((opt) => (
+                <option key={opt.id} value={opt.id}>
+                  {opt.label}
                 </option>
               ))}
             </select>
@@ -1012,10 +1121,10 @@ export function RenameMoveModal({
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const availableParents =
-    target.kind === "folder"
-      ? folders.filter((f) => f.id !== target.item.id)
-      : folders;
+  const parentOptions = getFolderOptions(
+    folders,
+    target.kind === "folder" ? new Set([target.item.id]) : undefined,
+  );
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -1057,9 +1166,9 @@ export function RenameMoveModal({
             onChange={(e) => setParent(e.target.value ? Number(e.target.value) : null)}
           >
             <option value="">Mis archivos (raíz)</option>
-            {availableParents.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
+            {parentOptions.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.label}
               </option>
             ))}
           </select>

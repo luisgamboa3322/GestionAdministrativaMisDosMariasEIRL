@@ -59,6 +59,7 @@ import {
   updateCompanyApi,
   updateDocumentApi,
   updateFolderApi,
+  updateTemplateApi,
   updateVehicleApi,
   uploadDocumentApi,
   uploadDocumentVersionApi,
@@ -1238,6 +1239,31 @@ function App() {
                   ),
                 );
               }}
+              onUpdateTemplate={(id, patch) => {
+                if (authMode === "live") {
+                  updateTemplateApi(id, patch)
+                    .then(() => loadLiveWorkspace())
+                    .then(() => showToast("Plantilla actualizada en el servidor."))
+                    .catch((err) =>
+                      showToast(
+                        err instanceof Error ? err.message : "No se pudo actualizar plantilla.",
+                      ),
+                    );
+                  return;
+                }
+                setTemplates((previous) =>
+                  previous.map((item) =>
+                    item.id === id
+                      ? {
+                          ...item,
+                          name: patch.name ?? item.name,
+                          items: patch.items ?? item.items,
+                        }
+                      : item,
+                  ),
+                );
+                showToast("Plantilla actualizada.");
+              }}
               onDeleteTemplate={(id) =>
                 setTemplates((previous) => previous.filter((item) => item.id !== id))
               }
@@ -1399,10 +1425,36 @@ function App() {
         {modal === "folder" && (
           <NewFolderModal
             folders={folders}
+            categories={categories}
             parent={folderContext ? folderContext.parent : currentFolder}
+            defaultSyncCategory={Boolean(folderContext?.stayInDossier)}
             onClose={() => {
               setModal(null);
               setFolderContext(null);
+            }}
+            onCreateCategory={async (categoryName) => {
+              if (authMode === "live") {
+                await createCategoryApi({
+                  name: categoryName,
+                  type: folderContext?.stayInDossier ? "Unidad" : "General",
+                  requires_expiration: true,
+                  description: "",
+                  color: "emerald",
+                });
+                return;
+              }
+              setCategories((prev) => [
+                ...prev,
+                {
+                  id: Date.now(),
+                  name: categoryName,
+                  type: folderContext?.stayInDossier ? "Unidad" : "General",
+                  location: folderContext?.stayInDossier ? "Expediente de unidad" : "Mis archivos",
+                  requiresExpiration: true,
+                  description: "",
+                  color: "emerald",
+                },
+              ]);
             }}
             onCreate={createFolder}
           />

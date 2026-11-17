@@ -6,6 +6,7 @@ import {
   Check,
   ChevronRight,
   CircleHelp,
+  Edit3,
   Files,
   HardDrive,
   Plus,
@@ -98,6 +99,7 @@ export function SettingsPage({
   onAddCategory,
   onDeleteCategory,
   onAddTemplate,
+  onUpdateTemplate,
   onToggleTemplate,
   onDeleteTemplate,
 }: {
@@ -110,6 +112,7 @@ export function SettingsPage({
   onAddCategory: (category: Omit<CategorySetting, "id">) => void;
   onDeleteCategory: (id: number) => void;
   onAddTemplate: (template: Omit<TemplateSetting, "id">) => void;
+  onUpdateTemplate?: (id: number, patch: { name?: string; items?: string[] }) => void;
   onToggleTemplate: (id: number) => void;
   onDeleteTemplate: (id: number) => void;
 }) {
@@ -124,6 +127,8 @@ export function SettingsPage({
   const [section, setSection] = useState("Perfil");
   const [categoryForm, setCategoryForm] = useState(false);
   const [templateForm, setTemplateForm] = useState(false);
+  const [editingTemplateId, setEditingTemplateId] = useState<number | null>(null);
+  const [editingTemplateItems, setEditingTemplateItems] = useState("");
   const [newCategory, setNewCategory] = useState({
     name: "",
     type: "General",
@@ -451,37 +456,124 @@ export function SettingsPage({
                 </div>
               )}
               <div className="template-settings-grid">
-                {templates.map((template) => (
-                  <article key={template.id}>
-                    <div>
-                      <span className={`template-kind kind-${normalizeAuditText(template.kind)}`}>
-                        {template.kind}
-                      </span>
-                      <button
-                        className={`settings-switch ${template.active ? "active" : ""}`}
-                        onClick={() => onToggleTemplate(template.id)}
-                      >
-                        <i />
-                      </button>
-                    </div>
-                    <h3>{template.name}</h3>
-                    <p>{template.items.length} elementos automáticos</p>
-                    <div className="template-item-preview">
-                      {template.items.slice(0, 5).map((item) => (
-                        <span key={item}>
-                          {auditRequirementCatalog.find((req) => req.id === item)?.label || item}
+                {templates.map((template) => {
+                  const isEditing = editingTemplateId === template.id;
+                  const currentList = editingTemplateItems
+                    .split(",")
+                    .map((item) => item.trim())
+                    .filter(Boolean);
+                  const missingCategoryChips = categories.filter(
+                    (cat) =>
+                      !currentList.some(
+                        (item) => item.toLowerCase() === cat.name.trim().toLowerCase(),
+                      ),
+                  );
+                  return (
+                    <article key={template.id}>
+                      <div>
+                        <span className={`template-kind kind-${normalizeAuditText(template.kind)}`}>
+                          {template.kind}
                         </span>
-                      ))}
-                      {template.items.length > 5 && <span>+{template.items.length - 5}</span>}
-                    </div>
-                    <button
-                      className="template-delete"
-                      onClick={() => onDeleteTemplate(template.id)}
-                    >
-                      <Trash2 size={14} /> Eliminar
-                    </button>
-                  </article>
-                ))}
+                        <button
+                          className={`settings-switch ${template.active ? "active" : ""}`}
+                          onClick={() => onToggleTemplate(template.id)}
+                        >
+                          <i />
+                        </button>
+                      </div>
+                      <h3>{template.name}</h3>
+                      <p>{template.items.length} elementos automáticos</p>
+                      {isEditing ? (
+                        <div className="template-edit-box">
+                          <label>
+                            Elementos separados por comas
+                            <textarea
+                              rows={3}
+                              value={editingTemplateItems}
+                              onChange={(event) => setEditingTemplateItems(event.target.value)}
+                            />
+                          </label>
+                          {missingCategoryChips.length > 0 && (
+                            <div className="category-chip-block">
+                              <span className="chip-block-label">Añadir categoría creada:</span>
+                              <div className="category-chip-row">
+                                {missingCategoryChips.map((cat) => (
+                                  <button
+                                    type="button"
+                                    key={cat.id}
+                                    className="category-chip"
+                                    onClick={() =>
+                                      setEditingTemplateItems((prev) =>
+                                        prev.trim() ? `${prev.trim()}, ${cat.name}` : cat.name,
+                                      )
+                                    }
+                                  >
+                                    + {cat.name}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          <div className="modal-actions">
+                            <Button
+                              variant="secondary"
+                              onClick={() => setEditingTemplateId(null)}
+                            >
+                              Cancelar
+                            </Button>
+                            <Button
+                              icon={Save}
+                              onClick={() => {
+                                const parsed = editingTemplateItems
+                                  .split(",")
+                                  .map((item) => item.trim())
+                                  .filter(Boolean);
+                                if (!parsed.length || !onUpdateTemplate) return;
+                                onUpdateTemplate(template.id, { items: parsed });
+                                setEditingTemplateId(null);
+                              }}
+                            >
+                              Guardar
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="template-item-preview">
+                            {template.items.slice(0, 6).map((item) => (
+                              <span key={item}>
+                                {auditRequirementCatalog.find((req) => req.id === item)?.label ||
+                                  item}
+                              </span>
+                            ))}
+                            {template.items.length > 6 && (
+                              <span>+{template.items.length - 6}</span>
+                            )}
+                          </div>
+                          <div className="template-card-actions">
+                            {onUpdateTemplate && (
+                              <button
+                                className="template-edit-btn"
+                                onClick={() => {
+                                  setEditingTemplateId(template.id);
+                                  setEditingTemplateItems(template.items.join(", "));
+                                }}
+                              >
+                                <Edit3 size={14} /> Editar elementos
+                              </button>
+                            )}
+                            <button
+                              className="template-delete"
+                              onClick={() => onDeleteTemplate(template.id)}
+                            >
+                              <Trash2 size={14} /> Eliminar
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </article>
+                  );
+                })}
               </div>
             </SettingsCard>
           )}
